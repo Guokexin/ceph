@@ -3904,7 +3904,7 @@ int RGW_Auth_S3::authorize_v2(RGWRados *store, struct req_state *s)
   }
 
   /* try keystone auth first */
-  int external_auth_result = -ERR_INVALID_ACCESS_KEY;
+  int external_auth_result = -ERR_INVALID_ACCESS_KEY;;
   if (store->ctx()->_conf->rgw_s3_auth_use_keystone
       && !store->ctx()->_conf->rgw_keystone_url.empty()) {
     dout(20) << "s3 keystone: trying keystone auth" << dendl;
@@ -3961,7 +3961,9 @@ int RGW_Auth_S3::authorize_v2(RGWRados *store, struct req_state *s)
   RGWS3V2Extractor extr(s);
   RGWLDAPAuthEngine ldap(s->cct, store, extr, &aplfact);
 
-  if (ldap.is_applicable()) {
+  if (! ldap.is_applicable()) {
+    external_auth_result = -EACCES;
+  } else {
     try {
       auto applier = ldap.authenticate();
       if (! applier) {
